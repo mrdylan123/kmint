@@ -59,25 +59,25 @@ map::map_node &find_cow_node(map::map_graph &graph) {
 
 void Dijkstra(graph::basic_graph<map::map_node_info>::node_type& start, graph::basic_graph<map::map_node_info>::node_type& end)
 {
-	std::map<graph::basic_graph<map::map_node_info>::node_type*, distance*> distances{};
+	std::map<graph::basic_graph<map::map_node_info>::node_type const*, distance*> distances{};
 
 	map::map m{ map::read_map(map_description) };
 	auto &graph = m.graph();
 
-	std::vector<graph::basic_graph<map::map_node_info>::node_type*> nodes = std::vector<graph::basic_graph<map::map_node_info>::node_type*>{};
+	std::vector<graph::basic_node<map::map_node_info>*> nodes = std::vector<graph::basic_node<map::map_node_info>*>{};
 
 	for (std::size_t i = 0; i < graph.num_nodes(); ++i) {
 		nodes.emplace_back(&graph[i]);
 
 		distance dist{};
-		distances.insert(std::pair<graph::basic_graph<map::map_node_info>::node_type*, distance*>(&graph[i], &dist));
+		distances.insert(std::pair<graph::basic_graph<map::map_node_info>::node_type const*, distance*>(&graph[i], &dist));
 	}
 
 	distances.at(&start)->set_shortest_distance(0);
 
 	while (nodes.size() > 0)
 	{
-		graph::basic_graph<map::map_node_info>::node_type* shortestDistanceNode = nullptr;
+		graph::basic_node<map::map_node_info> const* shortestDistanceNode = nullptr;
 
 		for (const auto node : distances)
 		{
@@ -92,7 +92,28 @@ void Dijkstra(graph::basic_graph<map::map_node_info>::node_type& start, graph::b
 		if (shortestDistanceNode != &end)
 		{
 			for (std::size_t i = 0; i < shortestDistanceNode->num_edges(); ++i) {
-				//auto &from = shortestDistanceNode
+				auto &from = (*shortestDistanceNode)[i].from();
+				auto &to = (*shortestDistanceNode)[i].to();
+
+				const graph::basic_node<map::map_node_info>* oppositeNode;
+
+				if (shortestDistanceNode == &from)
+				{
+					oppositeNode = &to;
+				}
+				else
+				{
+					oppositeNode = &from;
+				}
+
+				int totalDistance = distances[shortestDistanceNode]->shortest_distance() +
+					(*shortestDistanceNode)[i].weight();
+
+				if (totalDistance < distances[oppositeNode]->shortest_distance())
+				{
+					distances[oppositeNode]->set_shortest_distance(totalDistance);
+					distances[oppositeNode]->set_from_node(shortestDistanceNode);
+				}
 			}
 		}
 	}
@@ -106,7 +127,7 @@ private:
 	play::actor const *actor_;
 };
 void rectangle_drawable::draw(ui::frame &f) const {
-		f.draw_rectangle(actor_->location(), { 10.0, 10.0 }, graphics::colors::white);
+	f.draw_rectangle(actor_->location(), { 10.0, 10.0 }, graphics::colors::white);
 }
 class hello_actor : public play::free_roaming_actor {
 public:
@@ -123,7 +144,7 @@ int main() {
 	ui::app app{};
 
 	//  maak een venster aan
-	ui::window window{app.create_window({1024, 768}, "hello")};
+	ui::window window{ app.create_window({1024, 768}, "hello") };
 
 	// maak een podium aan
 	play::stage s{};
@@ -174,41 +195,41 @@ int main() {
 
   // Maak een event_source aan (hieruit kun je alle events halen, zoals
   // toetsaanslagen)
-  ui::events::event_source event_source{};
+	ui::events::event_source event_source{};
 
-  // main_loop stuurt alle actors aan.
-  main_loop(s, window, [&](delta_time dt, loop_controls &ctl) {
-    // gebruik dt om te kijken hoeveel tijd versterken is
-    // sinds de vorige keer dat deze lambda werd aangeroepen
-    // loop controls is een object met eigenschappen die je kunt gebruiken om de
-    // main-loop aan te sturen.
+	// main_loop stuurt alle actors aan.
+	main_loop(s, window, [&](delta_time dt, loop_controls &ctl) {
+		// gebruik dt om te kijken hoeveel tijd versterken is
+		// sinds de vorige keer dat deze lambda werd aangeroepen
+		// loop controls is een object met eigenschappen die je kunt gebruiken om de
+		// main-loop aan te sturen.
 
-	  for (ui::events::event &e : event_source) {
-		  // event heeft een methode handle_quit die controleert
-		  // of de gebruiker de applicatie wilt sluiten, en zo ja
-		  // de meegegeven functie (of lambda) aanroept om met het
-		  // bijbehorende quit_event
-		  //
-		  e.handle_quit([&ctl](ui::events::quit_event qe) { ctl.quit = true; });
-		  e.handle_key_up([&my_actor](ui::events::key_event k) {
-			  switch (k.key) {
-			  case ui::events::key::up:
-				  my_actor.move({ 0, -5.0f });
-				  break;
-			  case ui::events::key::down:
-				  my_actor.move({ 0, 5.0f });
-				  break;
-			  case ui::events::key::left:
-				  my_actor.move({ -5.0f, 0 });
-				  break;
-			  case ui::events::key::right:
-				  my_actor.move({ 5.0f, 0 });
-				  break;
-			  default:
-				  break;
-			  }
-		  });
-	  }
-    
-  });
+		for (ui::events::event &e : event_source) {
+			// event heeft een methode handle_quit die controleert
+			// of de gebruiker de applicatie wilt sluiten, en zo ja
+			// de meegegeven functie (of lambda) aanroept om met het
+			// bijbehorende quit_event
+			//
+			e.handle_quit([&ctl](ui::events::quit_event qe) { ctl.quit = true; });
+			e.handle_key_up([&my_actor](ui::events::key_event k) {
+				switch (k.key) {
+				case ui::events::key::up:
+					my_actor.move({ 0, -5.0f });
+					break;
+				case ui::events::key::down:
+					my_actor.move({ 0, 5.0f });
+					break;
+				case ui::events::key::left:
+					my_actor.move({ -5.0f, 0 });
+					break;
+				case ui::events::key::right:
+					my_actor.move({ 5.0f, 0 });
+					break;
+				default:
+					break;
+				}
+			});
+		}
+
+	});
 }
