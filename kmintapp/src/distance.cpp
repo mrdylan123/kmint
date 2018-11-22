@@ -1,4 +1,7 @@
 #include "distance.h"
+#include <limits>
+#include "../include/kmint/graph/basic_node.hpp"
+#include "kmint/map/map.hpp"
 
 distance::distance() : shortest_distance_(std::numeric_limits<int>::max()), from_node_{ nullptr }
 {

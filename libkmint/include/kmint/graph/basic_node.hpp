@@ -1,7 +1,6 @@
 #ifndef KMINT_GRAPH_BASIC_NODE_HPP
 #define KMINT_GRAPH_BASIC_NODE_HPP
 
-#include "../../kmintapp/src/distance.h"
 #include "kmint/graph/basic_edge.hpp"
 #include "kmint/math/vector2d.hpp"
 #include "kmint/util/deref_unique_ptr.hpp"
@@ -75,20 +74,21 @@ public:
 private:
   explicit basic_node(std::size_t id, math::vector2d loc) noexcept(
       std::is_nothrow_default_constructible<NodeInfo>::value)
-      : node_id_{id}, location_{loc} {};
+      : node_id_{id}, location_{loc}, shortest_distance_(std::numeric_limits<int>::max()), from_node_{ nullptr } {};
   basic_node(std::size_t id, math::vector2d loc, NodeInfo const &info) noexcept(
       std::is_nothrow_copy_constructible<NodeInfo>::value)
-      : node_id_{id}, location_{loc}, node_info_{info} {};
+      : node_id_{id}, location_{loc}, node_info_{info}, shortest_distance_(std::numeric_limits<int>::max()), from_node_{ nullptr } {};
   basic_node(std::size_t id, math::vector2d loc, NodeInfo &&info) noexcept(
       std::is_nothrow_move_constructible<NodeInfo>::value)
-      : node_id_{id}, location_{loc}, node_info_{std::move(info)} {};
+      : node_id_{id}, location_{loc}, node_info_{std::move(info)}, shortest_distance_(std::numeric_limits<int>::max()), from_node_{ nullptr } {};
 
   std::size_t node_id_;
   kmint::math::vector2d location_;
   NodeInfo node_info_;
   bool tagged_{};
   container edges_{};
-  distance distance_;
+  int shortest_distance_;
+  kmint::graph::basic_node<NodeInfo> const *from_node_;
 };
 
 } // namespace graph
