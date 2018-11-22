@@ -1,6 +1,7 @@
 #ifndef KMINT_GRAPH_BASIC_NODE_HPP
 #define KMINT_GRAPH_BASIC_NODE_HPP
 
+#include "../../kmintapp/src/distance.h"
 #include "kmint/graph/basic_edge.hpp"
 #include "kmint/math/vector2d.hpp"
 #include "kmint/util/deref_unique_ptr.hpp"
@@ -87,6 +88,7 @@ private:
   NodeInfo node_info_;
   bool tagged_{};
   container edges_{};
+  distance distance_;
 };
 
 } // namespace graph

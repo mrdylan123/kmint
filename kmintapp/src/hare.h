@@ -20,6 +20,7 @@ public:
 private:
 	kmint::play::image_drawable drawable_;
 	cow const *cow_;
+	kmint::graph::basic_graph<kmint::map::map_node_info>::node_type* node_;
 };
 
 #endif /* KMINTAPP_HARE_HPP */

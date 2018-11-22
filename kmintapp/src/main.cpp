@@ -9,6 +9,7 @@
 #include "cow.h"
 #include <map>
 #include "distance.h"
+#include <stack>
 
 using namespace kmint; // alles van libkmint bevindt zich in deze namespace
 
@@ -57,29 +58,36 @@ map::map_node &find_cow_node(map::map_graph &graph) {
 	throw "could not find starting point";
 }
 
-void Dijkstra(graph::basic_graph<map::map_node_info>::node_type& start, graph::basic_graph<map::map_node_info>::node_type& end)
+void Dijkstra(graph::basic_graph<map::map_node_info>::node_type const& start, graph::basic_graph<map::map_node_info>::node_type const& end)
 {
-	std::map<graph::basic_graph<map::map_node_info>::node_type const*, distance*> distances{};
-
+	std::map<int, distance*> distances{};
 	map::map m{ map::read_map(map_description) };
 	auto &graph = m.graph();
+	std::vector<graph::basic_graph<map::map_node_info>::node_type const*> shortestPath;
 
 	std::vector<graph::basic_node<map::map_node_info>*> nodes = std::vector<graph::basic_node<map::map_node_info>*>{};
 
 	for (std::size_t i = 0; i < graph.num_nodes(); ++i) {
 		nodes.emplace_back(&graph[i]);
+		distance* dist = new distance{};
 
-		distance dist{};
-		distances.insert(std::pair<graph::basic_graph<map::map_node_info>::node_type const*, distance*>(&graph[i], &dist));
+		if (graph[i].node_id() != start.node_id()) {
+			distances.insert(std::pair<int, distance*>(graph[i].node_id(), dist));
+		}
+		else
+		{
+			dist->set_shortest_distance(0);
+			distances.insert(std::pair<int, distance*>(start.node_id(), dist));
+		}
 	}
-
-	distances.at(&start)->set_shortest_distance(0);
+	//distance dist{};
+	//distances.insert(std::pair<graph::basic_graph<map::map_node_info>::node_type const*, distance*>(&start, &dist));
 
 	while (nodes.size() > 0)
 	{
 		graph::basic_node<map::map_node_info> const* shortestDistanceNode = nullptr;
 
-		for (const auto node : distances)
+		for (const auto& node : distances)
 		{
 			if (shortestDistanceNode == nullptr || node.second->shortest_distance() < distances.at(shortestDistanceNode)->shortest_distance())
 			{
@@ -87,33 +95,65 @@ void Dijkstra(graph::basic_graph<map::map_node_info>::node_type& start, graph::b
 			}
 		}
 
-		std::remove(nodes.begin(), nodes.end(), shortestDistanceNode);
+		//nodes.erase(std::find(nodes.begin(), nodes.end(), shortestDistanceNode), nodes.end());
 
-		if (shortestDistanceNode != &end)
+		nodes.erase(std::remove_if(nodes.begin(), nodes.end(), [shortestDistanceNode](graph::basic_node<map::map_node_info>* node) { return node->node_id() == shortestDistanceNode->node_id(); }), nodes.end());
+
+		if (shortestDistanceNode->node_id() != end.node_id())
 		{
 			for (std::size_t i = 0; i < shortestDistanceNode->num_edges(); ++i) {
-				auto &from = (*shortestDistanceNode)[i].from();
-				auto &to = (*shortestDistanceNode)[i].to();
+				//graph::basic_edge<map::map_node_info>::node_type const& from = (*shortestDistanceNode)[i].from();
+				//graph::basic_edge<map::map_node_info>::node_type const& to = (*shortestDistanceNode)[i].to();
 
-				const graph::basic_node<map::map_node_info>* oppositeNode;
+				graph::basic_node<map::map_node_info> const* oppositeNode;
 
-				if (shortestDistanceNode == &from)
+				if (shortestDistanceNode == &(*shortestDistanceNode)[i].from())
 				{
-					oppositeNode = &to;
+					const int totalDistance = distances[shortestDistanceNode]->shortest_distance() +
+						(*shortestDistanceNode)[i].weight();
+
+					if (totalDistance < distances.at(&(*shortestDistanceNode)[i].to())->shortest_distance())
+					{
+						distances.at(&(*shortestDistanceNode)[i].to())->set_shortest_distance(totalDistance);
+						distances.at(&(*shortestDistanceNode)[i].to())->set_from_node(shortestDistanceNode);
+					}
 				}
 				else
 				{
-					oppositeNode = &from;
+					const int totalDistance = distances[shortestDistanceNode]->shortest_distance() +
+						(*shortestDistanceNode)[i].weight();
+
+					if (totalDistance < distances.at(&(*shortestDistanceNode)[i].from())->shortest_distance())
+					{
+						distances.at(&(*shortestDistanceNode)[i].from())->set_shortest_distance(totalDistance);
+						distances.at(&(*shortestDistanceNode)[i].from())->set_from_node(shortestDistanceNode);
+					}
 				}
-
-				int totalDistance = distances[shortestDistanceNode]->shortest_distance() +
-					(*shortestDistanceNode)[i].weight();
-
-				if (totalDistance < distances[oppositeNode]->shortest_distance())
+			}
+		}
+		else
+		{
+			// End room has been reached
+			if (distances[shortestDistanceNode]->from_node() != nullptr || shortestDistanceNode->node_id() == start.node_id())
+			{
+				while (shortestDistanceNode != nullptr)
 				{
-					distances[oppositeNode]->set_shortest_distance(totalDistance);
-					distances[oppositeNode]->set_from_node(shortestDistanceNode);
+					shortestPath.emplace_back(shortestDistanceNode);
+					shortestDistanceNode = distances[shortestDistanceNode]->from_node();
 				}
+			}
+		}
+
+		distances.erase(distances.find(shortestDistanceNode));
+	}
+
+	for (std::size_t i = 0; i < graph.num_nodes(); ++i)
+	{
+		for (std::size_t j = 0; j < shortestPath.size(); ++j)
+		{
+			if (shortestPath[j] == &graph[i])
+			{
+				graph[i].tagged(true);
 			}
 		}
 	}
@@ -196,6 +236,8 @@ int main() {
   // Maak een event_source aan (hieruit kun je alle events halen, zoals
   // toetsaanslagen)
 	ui::events::event_source event_source{};
+
+	Dijkstra(my_cow.node(), my_hare.node());
 
 	// main_loop stuurt alle actors aan.
 	main_loop(s, window, [&](delta_time dt, loop_controls &ctl) {
