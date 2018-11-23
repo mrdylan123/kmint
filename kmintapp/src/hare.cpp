@@ -9,7 +9,7 @@ using namespace kmint;
 static const char *hare_image = "resources/rabbit.png";
 
 map::map_node const &random_hare_node(map::map_graph const &graph) {
-	int r = kmint::random_int(0, 3);
+	int r = 0;//kmint::random_int(0, 3);
 	for (std::size_t i = 0; i < graph.num_nodes(); ++i) {
 		if (graph[i].node_info().kind == 'H') {
 			if (r == 0)

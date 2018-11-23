@@ -40,7 +40,7 @@ public:
   NodeInfo const &node_info() const noexcept { return node_info_; }
 
   kmint::math::vector2d location() const noexcept { return location_; }
-  void add_edge(basic_node const &to, float weight) {
+  void add_edge(basic_node &to, float weight) {
     edges_.push_back(std::make_unique<edge_type>(*this, to, weight));
   }
   const_iterator begin() const noexcept {
@@ -68,6 +68,10 @@ public:
   std::size_t node_id() const noexcept { return node_id_; }
   bool tagged() const noexcept { return tagged_; }
   void tagged(bool t) noexcept { tagged_ = t; }
+  int shortest_distance() const { return shortest_distance_; }
+  void set_shortest_distance(int shortest_distance) { shortest_distance_ = shortest_distance; }
+  basic_node<NodeInfo> *from_node() const { return from_node_; }
+  void set_from_node(basic_node<NodeInfo>* from_node) { from_node_ = from_node; }
 
   friend class basic_graph<NodeInfo>;
 
@@ -88,7 +92,7 @@ private:
   bool tagged_{};
   container edges_{};
   int shortest_distance_;
-  kmint::graph::basic_node<NodeInfo> const *from_node_;
+  basic_node<NodeInfo>* from_node_;
 };
 
 } // namespace graph
