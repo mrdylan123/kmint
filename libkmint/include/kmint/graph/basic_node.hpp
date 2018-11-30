@@ -69,22 +69,37 @@ public:
   bool tagged() const noexcept { return tagged_; }
   void tagged(bool t) noexcept { tagged_ = t; }
   int shortest_distance() const { return shortest_distance_; }
-  void set_shortest_distance(int shortest_distance) { shortest_distance_ = shortest_distance; }
+  void set_shortest_distance(int shortest_distance) {
+    shortest_distance_ = shortest_distance;
+  }
   basic_node<NodeInfo> *from_node() const { return from_node_; }
-  void set_from_node(basic_node<NodeInfo>* from_node) { from_node_ = from_node; }
+  void set_from_node(basic_node<NodeInfo> *from_node) {
+    from_node_ = from_node;
+  }
+  void reset()
+  {
+    shortest_distance_ = std::numeric_limits<int>::max();
+    from_node_ = nullptr;
+  }
 
   friend class basic_graph<NodeInfo>;
 
 private:
   explicit basic_node(std::size_t id, math::vector2d loc) noexcept(
       std::is_nothrow_default_constructible<NodeInfo>::value)
-      : node_id_{id}, location_{loc}, shortest_distance_(std::numeric_limits<int>::max()), from_node_{ nullptr } {};
+      : node_id_{id}, location_{loc},
+        shortest_distance_(std::numeric_limits<int>::max()), from_node_{
+                                                                 nullptr} {};
   basic_node(std::size_t id, math::vector2d loc, NodeInfo const &info) noexcept(
       std::is_nothrow_copy_constructible<NodeInfo>::value)
-      : node_id_{id}, location_{loc}, node_info_{info}, shortest_distance_(std::numeric_limits<int>::max()), from_node_{ nullptr } {};
+      : node_id_{id}, location_{loc}, node_info_{info},
+        shortest_distance_(std::numeric_limits<int>::max()), from_node_{
+                                                                 nullptr} {};
   basic_node(std::size_t id, math::vector2d loc, NodeInfo &&info) noexcept(
       std::is_nothrow_move_constructible<NodeInfo>::value)
-      : node_id_{id}, location_{loc}, node_info_{std::move(info)}, shortest_distance_(std::numeric_limits<int>::max()), from_node_{ nullptr } {};
+      : node_id_{id}, location_{loc}, node_info_{std::move(info)},
+        shortest_distance_(std::numeric_limits<int>::max()), from_node_{
+                                                                 nullptr} {};
 
   std::size_t node_id_;
   kmint::math::vector2d location_;
@@ -92,7 +107,7 @@ private:
   bool tagged_{};
   container edges_{};
   int shortest_distance_;
-  basic_node<NodeInfo>* from_node_;
+  basic_node<NodeInfo> *from_node_;
 };
 
 } // namespace graph

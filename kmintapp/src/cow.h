@@ -4,6 +4,8 @@
 #include "kmint/map/map.hpp"
 #include "kmint/play.hpp"
 #include "kmint/primitives.hpp"
+#include <stack>
+#include "kmint/graph/graph.hpp"
 
 class cow : public kmint::play::map_bound_actor {
 public:
@@ -16,13 +18,19 @@ public:
 	// geeft de radius van deze actor mee. Belangrijk voor collision detection
 	kmint::scalar radius() const override { return 16.0; }
 
+
+	bool reached_hare() const;
+	void set_shortest_path(std::stack<kmint::graph::basic_node<kmint::map::map_node_info>*> shortest_path);
+
 private:
 	// hoeveel tijd is verstreken sinds de laatste beweging
 	kmint::delta_time t_passed_{};
 	// weet hoe de koe getekend moet worden
 	kmint::play::image_drawable drawable_;
-	// edge_type const *next_edge_{nullptr};
-	// edge_type const *pick_next_edge();
+	bool reachedHare_;
+	std::stack<kmint::graph::basic_node<kmint::map::map_node_info>*> shortestPath_;
+	kmint::map::map_node_info* next_node_{nullptr};
+	edge_type const *pick_next_edge();
 };
 
 #endif /* KMINTAPP_COW_HPP */#pragma once
