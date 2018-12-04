@@ -6,6 +6,7 @@
 #include "kmint/primitives.hpp"
 #include <stack>
 #include "kmint/graph/graph.hpp"
+#include "FSM/State.h"
 
 class cow : public kmint::play::map_bound_actor {
 public:
@@ -31,6 +32,8 @@ private:
 	std::stack<kmint::graph::basic_node<kmint::map::map_node_info>*> shortestPath_;
 	kmint::map::map_node_info* next_node_{nullptr};
 	edge_type const *pick_next_edge();
+
+	std::stack<std::unique_ptr<state>> currentState_;
 };
 
 #endif /* KMINTAPP_COW_HPP */#pragma once

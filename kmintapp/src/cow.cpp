@@ -3,15 +3,21 @@
 #include "kmint/graph/graph.hpp"
 #include "kmint/map/map.hpp"
 #include "kmint/play.hpp"
+#include "FSM/cowWanderState.h"
 using namespace kmint;
 
 static const char *cow_image = "resources/cow.png";
 cow::cow(map::map_graph const &g, map::map_node const &initial_node) : kmint::play::map_bound_actor{ g, initial_node }, drawable_{ *this,
 	kmint::graphics::image{
-	cow_image, 0.1f } }, reachedHare_{ false } {}
+	cow_image, 0.1f } }, reachedHare_{ false }
+{
+	currentState_.push(std::make_unique<cowWanderState>(this));
+}
 
 void cow::act(delta_time dt) {
-    t_passed_ += dt;
+	currentState_.top()->update(dt);
+
+    /*t_passed_ += dt;
 
     if (shortestPath_.empty())
     {
@@ -38,7 +44,7 @@ void cow::act(delta_time dt) {
 	this->node(*nextNode);
 	shortestPath_.pop();
 	t_passed_ = from_seconds(0);
-    }
+    }*/
 }
 
 bool cow::reached_hare() const
