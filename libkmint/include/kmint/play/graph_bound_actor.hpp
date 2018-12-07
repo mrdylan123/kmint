@@ -11,16 +11,16 @@ template <typename Graph> class graph_bound_actor : public actor {
 public:
   using node_type = typename Graph::node_type;
   using edge_type = typename node_type::edge_type;
-  graph_bound_actor(Graph const &graph, node_type const &initial_node)
+  graph_bound_actor(Graph &graph, node_type const &initial_node)
       : graph_{&graph}, node_{&initial_node} {};
   math::vector2d location() const override { return node_->location(); }
 
   node_type const &node() const noexcept { return *node_; }
   void node(node_type const &n) noexcept { node_ = &n; }
-  Graph const &graph() const noexcept { return *graph_; }
+  Graph &graph() const noexcept { return *graph_; }
 
 private:
-  Graph const *graph_;
+  Graph *graph_;
   node_type const *node_;
 };
 

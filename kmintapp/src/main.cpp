@@ -10,6 +10,7 @@
 #include <map>
 #include <queue>
 #include <stack>
+#include "aStar.h"
 
 using namespace kmint; // alles van libkmint bevindt zich in deze namespace
 
@@ -135,116 +136,12 @@ void dijkstra(map::map_graph& graph, graph::basic_graph<map::map_node_info>::nod
     {
 	while (endNode != nullptr)
 	{
-	    endNode->tagged(true);
+	    //endNode->tagged(true);
 	    endNode = endNode->from_node();
 	}
     }
 }
 
-int distanceBetween(math::vector2d vector1, math::vector2d vector2)
-{
-    math::vector2d resultVector = vector2 - vector1;
-
-    return abs(resultVector.x() + resultVector.y()) / 32;
-}
-
-std::stack<graph::basic_node<map::map_node_info>*> aStar(map::map_graph& graph, graph::basic_graph<map::map_node_info>::node_type const& start, graph::basic_graph<map::map_node_info>::node_type const& end)
-{
-    std::stack<graph::basic_node<map::map_node_info>*> shortestPath = std::stack<graph::basic_node<map::map_node_info>*>{};
-
-    std::priority_queue<std::pair<int, graph::basic_node<map::map_node_info>*>,
-	std::vector<std::pair<int, graph::basic_node<map::map_node_info>*>>,
-	std::greater<std::pair<int, graph::basic_node<map::map_node_info>*>>> priorityQueue;
-
-    std::vector<graph::basic_node<map::map_node_info>*> visitedNodes{};
-
-    graph::basic_node<map::map_node_info>* startNode = nullptr;
-    graph::basic_node<map::map_node_info>* endNode = nullptr;
-
-    for (std::size_t i = 0; i < graph.num_nodes(); ++i) {
-	if (graph[i].node_id() == start.node_id())
-	{
-	    startNode = &graph[i];
-	    graph[i].set_shortest_distance(0);
-	}
-    }
-
-    priorityQueue.push(std::make_pair(startNode->shortest_distance(), startNode));
-
-    int checks = 0;
-
-    /* Looping till priority queue becomes empty (or all
-      distances are not finalized) */
-    while (!priorityQueue.empty())
-    {
-	checks++;
-
-	// The first vertex in pair is the minimum distance 
-	// vertex, extract it from priority queue. 
-	// vertex label is stored in second of pair (it 
-	// has to be done this way to keep the vertices 
-	// sorted distance (distance must be first item 
-	// in pair) 
-	graph::basic_node<map::map_node_info>* node = priorityQueue.top().second;
-
-	if (node->node_id() == end.node_id())
-	{
-	    endNode = node;
-	    break;
-	}
-
-	priorityQueue.pop();
-
-	node->tagged(true);
-	visitedNodes.emplace_back(node);
-
-	// 'i' is used to get all adjacent vertices of a vertex 
-	for (auto& vertex : *node)
-	{
-	    graph::basic_node<map::map_node_info>* oppositeNode;
-
-	    if (node == &vertex.from())
-	    {
-		oppositeNode = &vertex.to();
-	    }
-	    else
-	    {
-		oppositeNode = &vertex.from();
-	    }
-
-	    if (std::find(visitedNodes.begin(), visitedNodes.end(), oppositeNode) == visitedNodes.end())
-	    {
-		//  If there is shorted path to v through u. 
-		if (oppositeNode->shortest_distance() > node->shortest_distance() + vertex.weight() + distanceBetween(node->location(), end.location()))
-		{
-		    // Updating distance of v 
-		    oppositeNode->set_shortest_distance(node->shortest_distance() + vertex.weight() + distanceBetween(oppositeNode->location(), end.location()));
-		    oppositeNode->set_from_node(node);
-		    priorityQueue.push(std::make_pair(oppositeNode->shortest_distance(), oppositeNode));
-		}
-	    }
-	}
-    }
-
-    std::cout << checks << std::endl;
-
-    if (endNode->from_node() != nullptr || endNode->node_id() == start.node_id())
-    {
-	while (endNode != nullptr)
-	{
-	    shortestPath.push(endNode);
-	    endNode->tagged(true);
-	    endNode = endNode->from_node();
-	}
-    }
-
-    for (auto& node : graph)
-    {
-	node.reset();
-    }
-
-    return shortestPath;
-}
 
 class rectangle_drawable : public ui::drawable {
 public:
@@ -322,8 +219,6 @@ int main() {
     //float weight = edge.weight();
     //std::cout << "Gewicht: " << weight << "\n";
 
-    my_cow.set_shortest_path(aStar(graph, my_cow.node(), my_hare.node()));
-
     // Maak een event_source aan (hieruit kun je alle events halen, zoals
     // toetsaanslagen)
     ui::events::event_source event_source{};
@@ -339,7 +234,7 @@ int main() {
 	{
 	    graph.untag_all();
 	    my_hare.getNewNode(graph);
-	    my_cow.set_shortest_path(aStar(graph, my_cow.node(), my_hare.node()));
+	    my_cow.set_shortest_path(aStar::run(graph, my_cow.node(), my_hare.node()));
 	}
 
 	for (ui::events::event &e : event_source) {

@@ -1,5 +1,5 @@
-#ifndef KMINTAPP_WANDERSTATE_H
-#define KMINTAPP_WANDERSTATE_H
+#ifndef KMINTAPP_COWWANDERSTATE_H
+#define KMINTAPP_COWWANDERSTATE_H
 #include "State.h"
 #include "../cow.h"
 
@@ -10,5 +10,6 @@ public:
 
 private:
 	cow* cow_;
+    kmint::delta_time wanderingTime_;
 };
 #endif

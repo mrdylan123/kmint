@@ -16,7 +16,9 @@ add_executable(kmintapp
   src/hare.cpp
   src/cow.cpp
   src/FSM/state.cpp
-  src/FSM/cowWanderState.cpp)
+  src/FSM/cowWanderState.cpp
+  src/FSM/hareWanderState.cpp
+  src/FSM/searchPillState.cpp)
 
 target_compile_features(kmintapp PUBLIC cxx_std_17)
 target_link_libraries(kmintapp PRIVATE kmint)
